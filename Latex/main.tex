@@ -1,0 +1,80 @@
+\documentclass[11pt,a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\let\arrowedvec=\vec
+\renewcommand\vec{\mathbf}
+\newcommand{\quat}[1]{\mathbf{#1}}
+\newcommand{\Matrix}[1]{\mathbf{#1}}
+\newcommand{\skewop}[1]{\left[#1\right]_\times}
+
+\author{Dino Hüllmann}
+\title{Kalman, Quaternionen & Co.}
+
+\begin{document}
+
+\section{Einleitung}
+
+Quaternion:
+\begin{equation}
+	Q = q_w + q_x i + q_y j + q_z k \in \mathbb{H}
+\end{equation}
+
+As a vector:
+\begin{equation}
+	\quat{q}
+	=
+	\begin{bmatrix}
+		q_w \\ \vec{q}_v
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+		q_w \\ q_x \\ q_y \\ q_z
+	\end{bmatrix}
+\end{equation}
+
+\subsection{Product}
+
+\begin{equation}
+	\quat{p} \otimes \quat{q}
+	=
+	\begin{bmatrix}
+		p_w q_w - \vec{p}_v^\intercal \vec{q}_v \\
+		p_w \vec{q}_v + q_w \vec{p}_v + \vec{p}_v \times \vec{q}_v
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\quat{q}_1 \otimes \quat{q}_2 = \left[\quat{q}_1\right]_L \quat{q}_2
+	\qquad \text{and} \qquad
+	\quat{q}_1 \otimes \quat{q}_2 = \left[\quat{q}_2\right]_R \quat{q}_1
+\end{equation}
+
+\begin{equation}
+	\left[\quat{q}\right]_L
+	=
+	q_w \Matrix{I}
+	+
+	\begin{bmatrix}
+		0 && -\quat{q}_v^\intercal \\
+		\quat{q}_v && \skewop{\quat{q}_v}
+	\end{bmatrix}\text{,}	
+	\qquad
+	\left[\quat{q}\right]_R
+	=
+	q_w \Matrix{I}
+	+
+	\begin{bmatrix}
+	0 && -\quat{q}_v^\intercal \\
+	\quat{q}_v && -\skewop{\quat{q}_v}
+	\end{bmatrix}
+\end{equation}
+
+\section{Rotation}
+
+
+
+\end{document}
