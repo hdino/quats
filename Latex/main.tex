@@ -4,12 +4,15 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{bm}
+\usepackage{units}
 
 \let\arrowedvec=\vec
-\renewcommand\vec{\mathbf}
+\renewcommand\vec{\bm}
 \newcommand{\quat}[1]{\mathbf{#1}}
 \newcommand{\Matrix}[1]{\mathbf{#1}}
-\newcommand{\skewop}[1]{\left[#1\right]_\times}
+\newcommand{\skewop}[1]{\left[ #1 \right]_\times}
+\newcommand{\qprod}{\otimes}
 
 \author{Dino Hüllmann}
 \title{Kalman, Quaternionen & Co.}
@@ -39,7 +42,7 @@ As a vector:
 \subsection{Product}
 
 \begin{equation}
-	\quat{p} \otimes \quat{q}
+	\quat{p} \qprod \quat{q}
 	=
 	\begin{bmatrix}
 		p_w q_w - \vec{p}_v^\intercal \vec{q}_v \\
@@ -48,9 +51,9 @@ As a vector:
 \end{equation}
 
 \begin{equation}
-	\quat{q}_1 \otimes \quat{q}_2 = \left[\quat{q}_1\right]_L \quat{q}_2
+	\quat{q}_1 \qprod \quat{q}_2 = \left[\quat{q}_1\right]_L \quat{q}_2
 	\qquad \text{and} \qquad
-	\quat{q}_1 \otimes \quat{q}_2 = \left[\quat{q}_2\right]_R \quat{q}_1
+	\quat{q}_1 \qprod \quat{q}_2 = \left[\quat{q}_2\right]_R \quat{q}_1
 \end{equation}
 
 \begin{equation}
@@ -74,6 +77,256 @@ As a vector:
 \end{equation}
 
 \section{Rotation}
+
+\begin{equation}
+	\Matrix{R}(t)
+	=
+	\Matrix{R}(0) \exp \left( \skewop{\vec{\omega}} t \right)
+	=
+	\Matrix{R}(0) \exp \left( \skewop{\vec{\omega} t} \right)
+\end{equation}
+
+Given the rotation vector $\vec{u} = \phi \vec{u}$, denoting a right-handed rotation of $\unit[\phi]{rad}$ around the unit axis given by $\vec{u}$:
+
+\begin{equation}
+	\quat{q}\lbrace\vec{v}\rbrace
+	=
+	\exp(\vec{v}/2)
+	=
+	\begin{bmatrix}
+		\cos(\phi/2) \\ \vec{u} \sin(\phi/2)
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\Matrix{R}\lbrace\vec{v}\rbrace
+	=
+	\exp \left( \skewop{\vec{v}} \right)
+	=
+	\Matrix{I} + \sin \phi \skewop{\vec{u}} + (1 - \cos \phi) \skewop{\vec{u}}^2
+\end{equation}
+
+\section{Hamilton convention}
+
+Order:
+\begin{math}
+	\left( q_w \text{, } \vec{q}_v \right)
+\end{math}
+
+Right-to-left products mean: Local-to-Global, i.e.
+\begin{math}
+	\vec{x}_\mathcal{G} = \quat{q} \qprod \vec{x}_\mathcal{L} \qprod \quat{q}^*
+\end{math}
+
+\section{Notation}
+
+\subsection{Translation}
+
+\begin{equation}
+	\vec{t}_{[\text{expressed in}], [\text{initial point}][\text{end point}]}
+\end{equation}
+
+Example: $\vec{t}_{A,BC}$
+
+Point: $\vec{p}_A = \vec{t}_{A,AP}$
+
+Vector $\vec{v} = \overline{BC}$: $\vec{v}_A = \vec{t}_{A,\overline{BC}}$
+
+In case of the world frame $\mathcal{W}$: $\vec{p} = \vec{p}_\mathcal{W} = \vec{t}_{\mathcal{W}, \mathcal{W} P}$
+
+\subsection{Rotation}
+
+a transformation \textit{from} frame $B$ \textit{to} frame $A$ or a transformation \textit{of} frame $B$ \textit{with respect to} frame $A$
+
+\begin{equation}
+	\quat{q}_{[\text{to}][\text{from}]}
+	\equiv
+	\quat{q}_{[\text{with respect to}][\text{of}]},
+	\qquad
+	\Matrix{R}_{[\text{to}][\text{from}]}
+	\equiv
+	\Matrix{R}_{[\text{with respect to}][\text{of}]}
+\end{equation}
+
+\section{Integration}
+
+\subsection{Zeroth order backward integration}
+
+\subsection{First order integration}
+
+\section{Jacobians of the rotation}
+
+Rotation of vector $\vec{a}$ of $\theta$ radians around unit axis $\vec{u}$.
+
+\begin{equation}
+	\vec{\theta} = \theta \vec{u},
+	\qquad
+	\quat{q} = \quat{q}\lbrace \vec{\theta} \rbrace,
+	\qquad
+	\Matrix{R} = \Matrix{R}\lbrace \vec{\theta} \rbrace
+\end{equation}
+
+\subsection{Jacobian with respect to the vector}
+
+\begin{equation}
+	\frac{\partial(\Matrix{R} \vec{a})}{\partial \vec{a}} = \Matrix{R}
+\end{equation}
+
+\subsection{Jacobian with respect to the rotation vector}
+
+\begin{equation}
+	\frac{\partial(\Matrix{R} \vec{a})}{\partial \vec{\theta}}
+	=
+	-\skewop{\Matrix{R} \vec{a}}
+\end{equation}
+
+\subsection{Jacobian with respect to the quaternion}
+
+Define: $\quat{q} = \begin{bmatrix}w && \vec{v}\end{bmatrix}$
+
+\begin{equation}
+	\frac{\partial(\Matrix{R} \vec{a})}{\partial \quat{q}}
+	=
+	2 \begin{bmatrix}
+		w \vec{a} + \vec{v} \times \vec{a} &&
+		\vec{v}^\intercal \vec{a} \Matrix{I} + \vec{v} \vec{a}^\intercal - \vec{a} \vec{v}^\intercal - w \skewop{\vec{a}}
+	\end{bmatrix}
+\end{equation}
+
+\section{Error-state Kalman filter (ESKF)}
+
+True-, nominal- and error-state values. The true-state is expressed as a composition of the nominal- and the error-states.
+
+Nominal-state: $\vec{x}$
+
+Error-state: $\delta \vec{x}$
+
+\begin{enumerate}
+	\item High-frequency data is integrated into the nominal-state, in parallel the ESKF predicts a Gaussian estimate of the error-state.
+	\item Low-frequency measurements arrive that render the errors used for filter correction.
+	\item The posterior Gaussian estimate of the error-state is computed.
+	\item The error-state's mean is injected into the nominal-state and then reset to zero.
+	\item The error-state's covariance matrix is updated to reflect this reset.
+\end{enumerate}
+
+\subsection{The true-state dynamics}
+
+\begin{subequations}
+\begin{eqnarray}
+	\dot{\quat{q}}_t = \frac{1}{2} \quat{q}_t \qprod \vec{\omega}_t \\
+	\dot{\vec{\omega}}_{bt} = \vec{\omega}_w
+\end{eqnarray}
+\end{subequations}
+
+\begin{tabular}{l c c c c}
+	Magnitude & True & Nominal & Error & Composition \\ \hline
+	Quaternion & $\quat{q}_t$ & $\quat{q}$ & $\delta \quat{q}$ & $\quat{q}_t = \quat{q} \qprod \delta \quat{q}$ \\
+	Gyroscope bias & $\vec{\omega}_{bt}$ & $\vec{\omega}_b$ & $\delta \vec{\omega}_b$ & $\vec{\omega}_{bt} = \vec{\omega}_b + \delta \vec{\omega}_b$
+\end{tabular}
+
+\subsection{Derivation}
+
+True-state:
+\begin{equation}
+	\vec{x}_t
+	=
+	\begin{bmatrix}
+		\quat{q}_t \\ \vec{\omega}_{bt}
+	\end{bmatrix}
+\end{equation}
+
+System model:
+\begin{equation}
+	\dot{\quat{q}}_t = \frac{1}{2} \quat{q}_t \qprod \vec{\omega}_t \medspace,
+	\qquad
+	\dot{\vec{\omega}}_{bt} = \vec{\omega}_w
+\end{equation}
+
+Measurements:
+\begin{subequations}
+\begin{eqnarray}
+	\vec{a}_m = \Matrix{R}_t^\intercal \left( \vec{a}_t - \vec{g} \right) + \vec{a}_n \\
+	\vec{\omega}_m = \vec{\omega}_t + \vec{\omega}_{bt} + \vec{\omega}_n
+\end{eqnarray}
+\end{subequations}
+with $\Matrix{R}_t := \Matrix{R}(\quat{q}_t)$.
+
+Error state:
+\begin{equation}
+	\delta \vec{x}
+	=
+	\begin{bmatrix}
+		\delta \vec{\theta} \\ \delta \vec{\omega}_b
+	\end{bmatrix}
+\end{equation}
+
+\minisec{Measurement Jacobian}
+
+Sensor model:
+\begin{equation}
+	\vec{y} = h(\vec{x}_t) + \vec{v}
+\end{equation}
+
+We had:
+\begin{equation}
+	\vec{a}_m = \Matrix{R}_t^\intercal \left( \vec{a}_t - \vec{g} \right) + \vec{a}_n
+\end{equation}
+
+Assumption: the mean of $\vec{a}_t$ is zero. Therefore,
+\begin{equation}
+	\underbrace{\vec{a}_m}_{\vec{y}}  = \underbrace{\Matrix{R}_t^\intercal \left( -\vec{g} \right)}_{h(\vec{x}_t)} + \underbrace{\vec{a}_n}_{\vec{v}}
+\end{equation}
+
+\begin{equation}
+	h(\vec{x}_t)
+	=
+	\Matrix{R}_t^\intercal \left( -\vec{g} \right)
+	=
+	\Matrix{R}\left( \quat{q}_t^* \right) \left( -\vec{g} \right)
+\end{equation}
+
+\begin{equation}
+	\Matrix{H}
+	=
+	\left. \frac{\partial h}{\partial \delta \vec{x}} \right|_{\vec{x}}
+	=
+	\left. \frac{\partial h}{\partial \vec{x}_t} \right|_{\vec{x}} \left. \cdot \frac{\partial \vec{x}_t}{\partial \delta \vec{x}} \right|_{\vec{x}}
+	=
+	\Matrix{H}_x \cdot \Matrix{H}_{\delta x}
+\end{equation}
+
+\begin{equation}
+	\Matrix{H}_{\delta x}
+	=
+	\begin{bmatrix}
+		\left.\frac{\partial \left( \quat{q} \qprod \delta \quat{q} \right)}{\partial \delta \vec{\theta}}\right|_{\vec{q}} & \Matrix{0} \\
+		\Matrix{0} & \left.\frac{\partial \left( \vec{\omega}_b + \delta \vec{\omega}_b \right)}{\partial \delta \vec{\omega}_b}\right|_{\vec{\omega}_b}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\left.\frac{\partial \left( \vec{\omega}_b + \delta \vec{\omega}_b \right)}{\partial \delta \vec{\omega}_b}\right|_{\vec{\omega}_b}
+	=
+	\Matrix{I}_3
+\end{equation}
+
+\begin{equation}
+	\left.\frac{\partial \left( \quat{q} \qprod \delta \quat{q} \right)}{\partial \delta \vec{\theta}}\right|_{\vec{q}}
+	=
+	\left[\quat{q}\right]_L \frac{1}{2}
+	\begin{bmatrix}
+	\Matrix{0}_{1 \times 3} \\ \Matrix{I}_3
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\Matrix{H}_x = \left. \frac{\partial h}{\partial \vec{x}_t} \right|_{\vec{x}}
+	=
+	\begin{bmatrix}
+		\left.\frac{\partial h}{\partial \quat{q}_t}\right|_{\quat{q}} &
+		\left.\frac{\partial h}{\partial \vec{\omega}_{bt}}\right|_{\vec{\omega}_b}
+	\end{bmatrix}
+\end{equation}
 
 
 
